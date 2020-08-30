@@ -1,27 +1,47 @@
+`timescale 1ns / 1ps
+
+/* ///////////  Instantiation Template //////////////////
+
+PB_Debouncer#(
+ .DELAY(15)
+ )
+ debouncer_inst
+(
+	.i_clk(),
+	.i_rst(),
+	.i_PB(),
+	.o_PB_pressed_status(),
+	.o_PB_pressed_pulse(),
+	.o_PB_released_pulse()
+ );
+
+*/ ////////////////////////////////////////////////////
+
+
 module PB_Debouncer#(
  parameter DELAY=15,
  parameter DELAY_WIDTH = $clog2(DELAY)
  )
 (
-	input 	logic clk,
-	input 	logic rst,
-	input 	logic PB,
-	output 	logic PB_pressed_status,
-	output  logic PB_pressed_pulse,
-	output  logic PB_released_pulse
+	input 	logic i_clk,
+	input 	logic i_rst,
+	input 	logic i_PB,
+	output 	logic o_PB_pressed_status,
+	output  logic o_PB_pressed_pulse,
+	output  logic o_PB_released_pulse
  );
 	
 	logic PB_sync_aux, PB_sync;
 
 ///// Double flopping stage for synchronization
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge i_clk) begin
+        if (i_rst) begin
             PB_sync_aux <= 1'b0;
             PB_sync     <= 1'b0;
         end
         else begin
-            PB_sync_aux <= PB;
+            PB_sync_aux <= i_PB;
             PB_sync     <= PB_sync_aux;
         end
     end
@@ -62,13 +82,13 @@ module PB_Debouncer#(
                             end
                          
              PB_PRESSED:    begin
-                                PB_pressed_pulse = 1'b1;
+                                o_PB_pressed_pulse = 1'b1;
                                 if (PB_sync)
                                     state_next = PB_STABLE;
                             end
              
              PB_STABLE:     begin
-                                PB_pressed_status=1'b1;
+                                o_PB_pressed_status=1'b1;
                                 state_next = PB_STABLE;
                          
                                 if (~PB_sync)
@@ -76,7 +96,7 @@ module PB_Debouncer#(
                             end
 
               PB_RELEASED:  begin
-                                PB_released_pulse = 1'b1;
+                                o_PB_released_pulse = 1'b1;
                                 state_next = PB_IDLE;
                             end    
  
