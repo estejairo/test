@@ -34,29 +34,44 @@ module  capture(
     // logic rst = ~reset;
     logic clk;
 
-    clk_wiz_0   instance_name (
+    clk_wiz_0   clock_wiz_inst (
                 // Clock out ports
                 .clk_out1(clk),     // output clk_out1
                 // Status and control signals
-                .reset(), // input reset
+                .reset('d0), // input reset
                 .locked(locked),       // output locked
                 // Clock in ports
                 .clk_in1_p(clk_in1_p),    // input clk_in1_p
                 .clk_in1_n(clk_in1_n)    // input clk_in1_n
     );
 
-    logic synchronized_pulse = 'b0;
+    logic synchronized_pulse;
 
     posedge_detector sync_inst(
         .clk(clk),
-        .rst(),
+        .rst('d0),
         .signal(B16_L22_P),
         .detection(synchronized_pulse)
     );
 
-    //Led Counter Logic
+
+    //////// Counters
+    logic [31:0] pulse_counter = 'd0;
+    logic [31:0] pulse_counter_next = 'd0;
     logic [31:0] counter = 'd0;
     logic [31:0] counter_next = 'd0;
+
+    //Pulse Counter Logic
+    always_comb begin
+        if (synchronized_pulse)
+            pulse_counter_next =  pulse_counter + 'd1;
+        else if ((counter == 'd1_000_000_000)&&(pulse_counter>'d0))
+            pulse_counter_next = pulse_counter - 'd1;
+        else
+            pulse_counter_next = pulse_counter;
+    end
+
+    //Led Counter Logic
     always_comb begin
         if (pulse_counter == 'd0)
             counter_next =  'd0;
@@ -66,26 +81,12 @@ module  capture(
             counter_next = counter + 'd1;
     end
 
-    //Pulse Counter Logic
-    logic [31:0] pulse_counter = 'd0;
-    logic [31:0] pulse_counter_next = 'd0;
-    always_comb begin
-        if (synchronized_pulse)
-            pulse_counter_next =  pulse_counter + 'd1;
-        else
-            pulse_counter_next = pulse_counter;
-    end
-
 
     // LED Logic
     logic B15_IO25_next = 'd1;
     always_comb begin
         if ((counter < 'd1_000_000_000)&&(pulse_counter>'d0))
             B15_IO25_next = 'd1;
-        else if ((counter == 'd1_000_000_000)&&(pulse_counter>'d0)) begin
-            B15_IO25_next = 'd0;
-            pulse_counter_next = pulse_counter - 'd1;
-        end
         else
             B15_IO25_next = 'd0;
     end
