@@ -65,7 +65,7 @@ module  capture(
     always_comb begin
         if (synchronized_pulse)
             pulse_counter_next =  pulse_counter + 'd1;
-        else if ((counter == 'd1_000_000_000)&&(pulse_counter>'d0))
+        else if ((counter == 'd100_000_000)&&(pulse_counter>'d0))
             pulse_counter_next = pulse_counter - 'd1;
         else
             pulse_counter_next = pulse_counter;
@@ -75,7 +75,7 @@ module  capture(
     always_comb begin
         if (pulse_counter == 'd0)
             counter_next =  'd0;
-        else if (counter == 'd1_500_000_000)
+        else if (counter == 'd150_000_000)
             counter_next =  'd0;
         else
             counter_next = counter + 'd1;
@@ -85,7 +85,7 @@ module  capture(
     // LED Logic
     logic B15_IO25_next = 'd1;
     always_comb begin
-        if ((counter < 'd1_000_000_000)&&(pulse_counter>'d0))
+        if ((counter < 'd100_000_000)&&(pulse_counter>'d0))
             B15_IO25_next = 'd1;
         else
             B15_IO25_next = 'd0;
